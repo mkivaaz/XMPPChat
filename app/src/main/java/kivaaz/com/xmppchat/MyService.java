@@ -13,7 +13,7 @@ import android.os.IBinder;
 public class MyService extends Service {
 
     private static final String DOMAIN = "jabber.network";
-    private static final String USERNAME = "Wakerz";
+    public static String USERNAME = "Wakerz";
     private static final String PASSWORD = "123456";
     public static ConnectivityManager cm;
     public static MyXMPP xmpp;

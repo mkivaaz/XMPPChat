@@ -236,7 +236,9 @@ public class MyXMPP {
 
     }
 
+    public void LoginDialog(){
 
+    }
 
 
 

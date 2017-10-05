@@ -19,7 +19,10 @@ import java.util.Random;
 public class Chat extends Fragment implements View.OnClickListener {
 
     private EditText Message;
-    private String sender = "Wakerz" , receiver = "Wakerz";
+
+
+
+    public static String sender  , receiver;
     private Random random;
     public static ArrayList<ChatMessage> chatlist;
     public static ChatAdapter chatAdapter;
