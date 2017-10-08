@@ -2,6 +2,7 @@ package kivaaz.com.xmppchat;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,7 +47,28 @@ public class Chat extends Fragment implements View.OnClickListener {
         chatAdapter = new ChatAdapter(getActivity(),chatlist);
         msgListView.setAdapter(chatAdapter);
 
+
+
+
         return view;
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+
+        if(isVisibleToUser){
+            if(MainActivity.isLogin){
+                if (!MainActivity.isReceiverExists) {
+
+                    FragmentManager fragmentManager = getFragmentManager();
+                    ChooseUserDialog loginDialogFrag = new ChooseUserDialog();
+
+                    loginDialogFrag.show(fragmentManager, "Enter Receiver's Username");
+                    MainActivity.isReceiverExists = true;
+                }
+            }
+        }
     }
 
     @Override

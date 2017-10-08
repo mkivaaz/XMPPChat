@@ -41,7 +41,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     private static final String TAG = "MainActivity";
+    public static boolean isLogin = false ;
     private boolean mBounded;
+    public static boolean isReceiverExists = false;
     SectionsPagerAdapter sectionsPagerAdapter;
     private MyService myService;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
@@ -88,6 +90,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         doUnbindService();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        final SharedPreferences.Editor editor = preferences.edit();
+        editor.clear().apply();
     }
 
 
@@ -162,13 +167,17 @@ public class MainActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-            String Uname = preferences.getString("Username","");
+            String Uname = preferences.getString("Username",null);
+            MyXMPP.c1 = getActivity();
+            MyXMPP.v1 = getView();
 
-            if(Uname.equalsIgnoreCase("")){
+            if(!isLogin){
                 FragmentManager fragmentManager = getFragmentManager();
                 LoginDialogFrag loginDialogFrag = new LoginDialogFrag();
 
                 loginDialogFrag.show(fragmentManager,"Login");
+
+
             }
 
 

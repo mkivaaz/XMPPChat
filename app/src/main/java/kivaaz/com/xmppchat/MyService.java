@@ -14,10 +14,11 @@ public class MyService extends Service {
 
     private static final String DOMAIN = "jabber.network";
     public static String USERNAME = "Wakerz";
-    private static final String PASSWORD = "123456";
+    public static String PASSWORD = "123456";
     public static ConnectivityManager cm;
     public static MyXMPP xmpp;
     public static boolean ServerChatCreated = false;
+
     String text = "";
     public Chat chat;
 
@@ -43,6 +44,8 @@ public class MyService extends Service {
     public void onDestroy() {
         super.onDestroy();
         xmpp.disconnect();
+
+
     }
 
     @Override

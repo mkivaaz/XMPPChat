@@ -1,10 +1,14 @@
 package kivaaz.com.xmppchat;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -21,6 +25,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smackx.iqregister.AccountManager;
 import org.jivesoftware.smackx.receipts.DeliveryReceiptManager;
 import org.jivesoftware.smackx.receipts.ReceiptReceivedListener;
 import org.json.JSONException;
@@ -39,11 +44,15 @@ public class MyXMPP {
     public boolean loggedin = false;
     public static boolean isConnecting = false;
     public static boolean isToasted = true;
+    public static boolean AccountExists = true;
     private boolean chat_created = false;
     private String serverAddress;
     public  static XMPPTCPConnection connection;
     private static String loginUser;
     private static String passwordUser;
+    public static String Receiver;
+    public static Context c1 ;
+    public static View v1 ;
     Gson gson;
     MyService context;
     public static MyXMPP instance = null;
@@ -184,6 +193,7 @@ public class MyXMPP {
         try {
             connection.login(loginUser,passwordUser);
             Log.i("LOGIN","LOGGED IN SUCCESSFULLY");
+            MainActivity.isLogin=true;
 
         } catch (XMPPException e) {
             e.printStackTrace();
@@ -194,13 +204,52 @@ public class MyXMPP {
         }
     }
 
+    private void SignUp(){
+        try {
 
+            AccountManager accountManager = AccountManager.getInstance(connection);
+            accountManager.createAccount(loginUser,passwordUser);
+
+            Login();
+
+        } catch (SmackException.NoResponseException e) {
+            e.printStackTrace();
+        } catch (XMPPException.XMPPErrorException e) {
+            e.printStackTrace();
+            Log.d("XMPPException",e.getMessage());
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(c1,"User Already Exists",Toast.LENGTH_LONG).show();
+                    View rootview = ((Activity)c1).getWindow().getDecorView().findViewById(android.R.id.content);
+                    Snackbar.make(rootview.findViewById(android.R.id.content), "Please Enter Another Username",
+                            Snackbar.LENGTH_INDEFINITE).setAction("Ok",
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+
+                                    MainActivity activity = (MainActivity)(c1);
+                                    activity.doUnbindService();
+                                    FragmentManager fragmentManager = activity.getSupportFragmentManager();
+                                    LoginDialogFrag loginDialogFrag = new LoginDialogFrag();
+                                    loginDialogFrag.show(fragmentManager,"User Already Exists, Enter a different Username");
+                                }
+                            }).show();
+
+                }
+            });
+
+
+        } catch (SmackException.NotConnectedException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void sendMessage(final ChatMessage chatMessage){
         String body = gson.toJson(chatMessage);
 
         if(!chat_created){
-            myChat = ChatManager.getInstanceFor(connection).createChat("Kivaaz" + "@jabber.network", MmessageListener);
+            myChat = ChatManager.getInstanceFor(connection).createChat(chatMessage.receiver + "@jabber.network", MmessageListener);
             myChat.addMessageListener(MmessageListener);
             chat_created = true;
         }
@@ -258,7 +307,7 @@ public class MyXMPP {
                 Boolean isJSON = isJSON(message.getBody());
                 final ChatMessage chatMessage;
                 if (!isJSON){
-                    ChatMessage chatMessage1 = new ChatMessage("Kivaaz","Wakerz",message.getBody(),"",false);
+                    ChatMessage chatMessage1 = new ChatMessage(Receiver,loginUser,message.getBody(),"",false);
                     //{"Date":"3 Oct 2017","Time":"6:45pm","body":"yo","isMine":true,"msgid":"181-74","receiver":"Wakerz","sender":"Wakerz","senderName":"Wakerz"}
                     JSONObject jsonObject = new JSONObject();
                     try {
@@ -267,9 +316,9 @@ public class MyXMPP {
                         jsonObject.put("body",message.getBody());
                         jsonObject.put("isMine", false);
                         jsonObject.put("msgid","");
-                        jsonObject.put("receiver","Wakerz");
-                        jsonObject.put("sender","Kivaaz");
-                        jsonObject.put("senderName","Kivaaz");
+                        jsonObject.put("receiver",loginUser);
+                        jsonObject.put("sender",Receiver);
+                        jsonObject.put("senderName",Receiver);
 
                         chatMessage = gson.fromJson(jsonObject.toString(),ChatMessage.class);
                         processMessage(chatMessage);
@@ -316,7 +365,10 @@ public class MyXMPP {
             Log.d("xmpp", "Connceted");
             connected = true;
             if (!connection.isAuthenticated()){
-                Login();
+                if(AccountExists)
+                    Login();
+                else
+                    SignUp();
             }
         }
 
